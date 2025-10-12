@@ -20,11 +20,11 @@
             justify-content: center;
             align-items: center;
             padding: 10px;
-            overflow: hidden;
+            /* --- OPTIMIZATION 1: Removed 'overflow: hidden' to allow scrolling on mobile --- */
         }
 
         .container {
-            max-width: 900px; /* Increased max-width to accommodate larger canvas */
+            max-width: 900px;
             width: 100%;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 24px;
@@ -48,7 +48,7 @@
 
         .header {
             background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
-            padding: 15px; /* Reduced padding slightly */
+            padding: 15px;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -74,7 +74,6 @@
         .header-content {
             position: relative;
             z-index: 1;
-            /* Flex layout to keep titles near image */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -82,7 +81,7 @@
         }
 
         .header-image {
-            width: 60px; /* Reduced image size */
+            width: 60px;
             height: 60px;
             object-fit: contain;
             border-radius: 12px;
@@ -96,7 +95,7 @@
 
         .header h1 {
             color: white;
-            font-size: 24px; /* Adjusted size */
+            font-size: 24px;
             font-weight: bold;
             margin: 0;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -104,17 +103,18 @@
 
         .game-title {
             color: rgba(255, 255, 255, 0.9);
-            font-size: 14px; /* Adjusted size */
+            font-size: 14px;
             font-style: italic;
             margin-top: 2px;
         }
         
-        /* New main content structure */
         .main-content {
             display: flex;
             flex-grow: 1;
             padding: 20px;
             gap: 20px;
+            /* --- OPTIMIZATION 2: Added min-height for better flex behavior --- */
+            min-height: 0;
         }
 
         .game-column {
@@ -164,7 +164,6 @@
             border-radius: 16px;
             overflow: hidden;
             box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
-            /* Centered the canvas wrapper */
             margin: 0 auto; 
         }
 
@@ -175,17 +174,16 @@
             touch-action: none;
         }
 
-        /* Centered button layout */
         .buttons {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin-top: 10px; 
-            margin-bottom: 20px; /* Add some space below */
+            margin-bottom: 20px;
         }
 
         .btn {
-            padding: 14px 20px; /* Slightly adjusted padding for standalone buttons */
+            padding: 14px 20px;
             border: none;
             border-radius: 12px;
             font-size: 16px;
@@ -199,7 +197,6 @@
             min-width: 140px;
         }
 
-        /* Control Grid for centered + positioning */
         .controls {
             display: grid;
             grid-template-areas: 
@@ -209,7 +206,7 @@
             grid-template-columns: 1fr 1fr 1fr;
             grid-template-rows: 1fr 1fr 1fr;
             gap: 8px;
-            width: 180px; /* Fixed width for button grid */
+            width: 180px;
             margin: 0 auto;
         }
 
@@ -218,7 +215,6 @@
         .controls button:nth-child(3) { grid-area: right; }
         .controls button:nth-child(4) { grid-area: down; }
         
-        /* Hidden center button for symmetry */
         .controls::before {
             content: '';
             grid-area: center;
@@ -247,9 +243,8 @@
             box-shadow: 0 2px 5px rgba(102, 126, 234, 0.4);
         }
 
-        /* Leaderboard styling */
         .leaderboard-column {
-            width: 280px; /* Fixed width for the leaderboard column */
+            width: 280px;
             flex-shrink: 0;
             transition: width 0.3s ease-in-out;
             display: flex;
@@ -257,7 +252,7 @@
         }
 
         .leaderboard-column.retracted {
-            width: 60px; /* Retracted width */
+            width: 60px;
         }
         
         .leaderboard-wrapper {
@@ -268,6 +263,9 @@
             flex-grow: 1;
             position: relative;
             overflow: hidden;
+            /* --- OPTIMIZATION 3: Make wrapper a flex container for scrolling child --- */
+            display: flex;
+            flex-direction: column;
         }
 
         .leaderboard h2 {
@@ -277,10 +275,24 @@
             align-items: center;
             gap: 10px;
             transition: opacity 0.3s;
+            /* --- OPTIMIZATION 4: Prevent title from shrinking --- */
+            flex-shrink: 0;
         }
 
         .leaderboard-content {
             transition: opacity 0.3s, transform 0.3s;
+            /* --- OPTIMIZATION 5: Make content area flexible for scrolling --- */
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0; /* Important flexbox fix for scrolling children */
+        }
+
+        /* --- OPTIMIZATION 6: Added a new rule to make the list scrollable --- */
+        #leaderboard {
+            overflow-y: auto; /* Enable vertical scrolling */
+            flex-grow: 1; /* Allow the list to take up available space */
+            padding-right: 5px; /* Space for the scrollbar */
         }
 
         .leaderboard-column.retracted .leaderboard-content {
@@ -314,7 +326,6 @@
             transform: rotate(180deg);
         }
 
-        /* Default styles for list items (unchanged) */
         .leaderboard-item {
             display: flex;
             justify-content: space-between;
@@ -338,7 +349,6 @@
             box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
         }
 
-        /* --- FIX 1: ADDED STYLES FOR MODAL AND ITS CONTENT --- */
         .modal {
             position: fixed;
             top: 0;
@@ -386,13 +396,14 @@
           from { transform: scale(0.8); opacity: 0; }
           to { transform: scale(1); opacity: 1; }
         }
-        /* --- END OF FIX 1 --- */
 
         /* Responsive adjustments for small screens */
         @media (max-width: 768px) {
             .container {
                 max-width: 100%;
-                height: 100vh;
+                /* --- OPTIMIZATION 7: Use min-height to allow container to grow --- */
+                min-height: 100vh;
+                height: auto;
                 border-radius: 0;
             }
             .main-content {
@@ -406,6 +417,7 @@
             .leaderboard-column.retracted {
                 width: 100%;
                 height: 60px;
+                flex-shrink: 0; /* Prevent it from collapsing */
             }
             .leaderboard-wrapper {
                 padding-top: 50px; /* Space for the toggle button */
@@ -430,21 +442,19 @@
                 order: 1;
             }
         }
-        
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect fill='%231a237e' width='200' height='200'/%3E%3Ctext x='100' y='100' font-family='Arial' font-size='60' fill='white' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8E%AE%3C/text%3E%3C/svg%3E" alt="Hosman Gaming" class="header-image">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect fill='%231a237e' width='200' height='200'/%3E%3Ctext x='100' y='100' font-family='Arial' font-size='60' fill='white' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8E%AE%3C/text%3E%3C/svg%3E" alt="Hosman Gaming" class="header-image">
                 <div class="header-titles">
                     <h1>HOSMAN GAMING</h1>
                     <div class="game-title">Snakes the Hosman Way</div>
                 </div>
             </div>
         </div>
-
         <div class="main-content">
             <div class="game-column">
                 <div class="score-section">
@@ -477,7 +487,6 @@
                     <button class="control-btn" onclick="changeDirection('DOWN')">▼</button>
                 </div>
             </div>
-
             <div class="leaderboard-column" id="leaderboardColumn">
                 <div class="leaderboard-wrapper">
                     <button class="toggle-btn" onclick="toggleLeaderboard()">
@@ -493,7 +502,6 @@
             </div>
         </div>
     </div>
-
     <div id="nameModal" class="modal hidden">
         <div class="modal-content">
             <h2>🎉 New High Score!</h2>
@@ -502,15 +510,14 @@
             <button class="btn btn-primary" onclick="submitScore()" style="width: 100%;">Submit Score</button>
         </div>
     </div>
-
+    
     <script>
         // --- Game Setup ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const GRID_SIZE = 30; // ⭐ INCREASED GRID SIZE for larger play area (30x30)
-        const CELL_SIZE = 16; // Cell size remains 16px
+        const GRID_SIZE = 30;
+        const CELL_SIZE = 16;
         
-        // ⭐ Calculate Canvas Dimensions based on new GRID_SIZE
         const CANVAS_WIDTH = GRID_SIZE * CELL_SIZE;
         const CANVAS_HEIGHT = GRID_SIZE * CELL_SIZE;
         canvas.width = CANVAS_WIDTH;
@@ -520,13 +527,11 @@
         const INITIAL_SPEED = 150;
         const SPEED_INCREMENT = 5;
 
-        // --- FIX 2: NOTE ON MISSING AUDIO FILES ---
-        // The following audio files are not included, so sound will not play.
-        // To fix this, provide 'eat_sound.mp3' and 'game_over_sound.mp3' in the same directory.
+        // NOTE: Audio files are not included, so sound will not play.
         const eatSound = new Audio('eat_sound.mp3');
         const gameOverSound = new Audio('game_over_sound.mp3');
 
-        let snake = [[Math.floor(GRID_SIZE/2), Math.floor(GRID_SIZE/2)]]; // Center start
+        let snake = [[Math.floor(GRID_SIZE/2), Math.floor(GRID_SIZE/2)]];
         let food = [15, 15];
         let direction = 'RIGHT';
         let nextDirection = 'RIGHT';
@@ -539,28 +544,20 @@
         let touchStartY = 0;
         
         const DEFAULT_LEADERBOARD = [
-            { name: 'Hosman', score: 90 },
-            { name: 'Player1', score: 80 },
-            { name: 'Snake Pro', score: 70 },
-            { name: 'Gamer', score: 60 },
-            { name: 'Ninja', score: 50 },
-            { name: 'Speed', score: 40 },
-            { name: 'Quick', score: 30 },
-            { name: 'Fast', score: 20 },
-            { name: 'Swift', score: 10 },
-            { name: 'Novice', score: 2 },
+            { name: 'Hosman', score: 500 }, { name: 'Player1', score: 50 },
+            { name: 'Snake Pro', score: 40 }, { name: 'Gamer', score: 35 },
+            { name: 'Ninja', score: 30 }, { name: 'Speed', score: 25 },
+            { name: 'Quick', score: 20 }, { name: 'Fast', score: 15 },
+            { name: 'Swift', score: 10 }, { name: 'Novice', score: 0 },
         ];
 
         let leaderboard = []; 
 
         // --- Leaderboard Functions ---
-
         function toggleLeaderboard() {
             const lbColumn = document.getElementById('leaderboardColumn');
             const toggleBtn = document.querySelector('.toggle-btn');
             const isRetracted = lbColumn.classList.toggle('retracted');
-
-            // Change button text/icon
             toggleBtn.innerHTML = isRetracted ? '&gt;' : '&lt;';
         }
 
@@ -594,9 +591,7 @@
             leaderboard.push({ name, score });
             leaderboard.sort((a, b) => b.score - a.score);
             leaderboard = leaderboard.slice(0, 10);
-            
             localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
-            
             updateLeaderboard();
             document.getElementById('nameModal').classList.add('hidden');
             document.getElementById('playerName').value = '';
@@ -604,48 +599,31 @@
         }
 
         // --- Game Logic Functions ---
-
         const OBSTACLE_SHAPES = [
-            [[0, 0], [0, 1], [1, 0], [1, 1]], 
-            [[0, 0], [0, 1], [0, 2]], 
-            [[1, 0], [0, 1], [1, 1], [2, 1]], 
-            [[0, 0], [0, 1], [1, 1], [1, 2]], 
+            [[0, 0], [0, 1], [1, 0], [1, 1]], [[0, 0], [0, 1], [0, 2]], 
+            [[1, 0], [0, 1], [1, 1], [2, 1]], [[0, 0], [0, 1], [1, 1], [1, 2]], 
         ];
 
         function generateObstacles() {
             const newObstacles = [];
             const numObstacles = 4;
             const center = Math.floor(GRID_SIZE / 2);
-            
             for (let i = 0; i < numObstacles; i++) {
                 const shapeIndex = Math.floor(Math.random() * OBSTACLE_SHAPES.length);
                 const baseShape = OBSTACLE_SHAPES[shapeIndex];
-                
-                // Ensure obstacles are not generated near the center start position (5x5 area)
                 const offsetX = Math.floor(Math.random() * (GRID_SIZE - 6)) + 3;
                 const offsetY = Math.floor(Math.random() * (GRID_SIZE - 6)) + 3;
-                
                 const obstacle = baseShape.map(([x, y]) => [x + offsetX, y + offsetY]);
-                
-                const overlaps = obstacle.some(([x, y]) => 
-                    Math.abs(x - center) < 4 && Math.abs(y - center) < 4
-                );
-                
-                if (!overlaps) {
-                    newObstacles.push(...obstacle);
-                }
+                const overlaps = obstacle.some(([x, y]) => Math.abs(x - center) < 4 && Math.abs(y - center) < 4);
+                if (!overlaps) { newObstacles.push(...obstacle); }
             }
-            
             return newObstacles;
         }
 
         function generateFood() {
             let newFood;
             do {
-                newFood = [
-                    Math.floor(Math.random() * GRID_SIZE),
-                    Math.floor(Math.random() * GRID_SIZE)
-                ];
+                newFood = [Math.floor(Math.random() * GRID_SIZE), Math.floor(Math.random() * GRID_SIZE)];
             } while (
                 snake.some(([x, y]) => x === newFood[0] && y === newFood[1]) ||
                 obstacles.some(([x, y]) => x === newFood[0] && y === newFood[1])
@@ -655,7 +633,6 @@
 
         function startGame() {
             obstacles = generateObstacles();
-            // Reset snake to center based on new GRID_SIZE
             snake = [[Math.floor(GRID_SIZE/2), Math.floor(GRID_SIZE/2)]]; 
             food = generateFood();
             direction = 'RIGHT';
@@ -665,7 +642,6 @@
             speed = INITIAL_SPEED;
             updateScore();
             updateEmoji('😐');
-            
             if (gameLoop) clearInterval(gameLoop);
             gameLoop = setInterval(update, speed);
             draw();
@@ -688,10 +664,8 @@
 
         function update() {
             if (gameStatus !== 'playing') return;
-
             direction = nextDirection;
             const head = [...snake[0]];
-
             switch (direction) {
                 case 'UP': head[1]--; break;
                 case 'DOWN': head[1]++; break;
@@ -699,9 +673,7 @@
                 case 'RIGHT': head[0]++; break;
             }
 
-            // Check collisions
-            if (head[0] < 0 || head[0] >= GRID_SIZE || 
-                head[1] < 0 || head[1] >= GRID_SIZE ||
+            if (head[0] < 0 || head[0] >= GRID_SIZE || head[1] < 0 || head[1] >= GRID_SIZE ||
                 snake.some(([x, y]) => x === head[0] && y === head[1]) ||
                 obstacles.some(([x, y]) => x === head[0] && y === head[1])) {
                 gameOver();
@@ -709,17 +681,11 @@
             }
 
             snake.unshift(head);
-
-            // Check food
             if (head[0] === food[0] && head[1] === food[1]) {
                 score += 10;
                 updateScore();
                 food = generateFood();
-                
-                eatSound.currentTime = 0; // Reset sound for instant replay
-                // eatSound.play(); // This line will cause an error if the file is missing
-                
-                // Increase speed
+                // eatSound.play();
                 if (score % 50 === 0) {
                     speed = Math.max(50, speed - SPEED_INCREMENT);
                     clearInterval(gameLoop);
@@ -728,65 +694,32 @@
             } else {
                 snake.pop();
             }
-
             draw();
         }
 
         function draw() {
-            // Clear canvas
             ctx.fillStyle = '#0d47a1';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw grid
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = 1;
             for (let i = 0; i <= GRID_SIZE; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * CELL_SIZE, 0);
-                ctx.lineTo(i * CELL_SIZE, canvas.height);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(0, i * CELL_SIZE);
-                ctx.lineTo(canvas.width, i * CELL_SIZE);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(i * CELL_SIZE, 0); ctx.lineTo(i * CELL_SIZE, canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i * CELL_SIZE); ctx.lineTo(canvas.width, i * CELL_SIZE); ctx.stroke();
             }
-
-            // Draw obstacles
             ctx.fillStyle = '#ff6b6b';
             obstacles.forEach(([x, y]) => {
                 ctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-                ctx.strokeStyle = '#c92a2a';
-                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#c92a2a'; ctx.lineWidth = 2;
                 ctx.strokeRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
             });
-
-            // Draw food
             ctx.fillStyle = '#ffd93d';
             ctx.beginPath();
-            ctx.arc(
-                food[0] * CELL_SIZE + CELL_SIZE / 2,
-                food[1] * CELL_SIZE + CELL_SIZE / 2,
-                CELL_SIZE / 2 - 2,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
-            ctx.strokeStyle = '#f9ca24';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Draw snake
+            ctx.arc(food[0] * CELL_SIZE + CELL_SIZE / 2, food[1] * CELL_SIZE + CELL_SIZE / 2, CELL_SIZE / 2 - 2, 0, Math.PI * 2);
+            ctx.fill(); ctx.strokeStyle = '#f9ca24'; ctx.lineWidth = 2; ctx.stroke();
             snake.forEach(([x, y], index) => {
-                const gradient = ctx.createLinearGradient(
-                    x * CELL_SIZE, y * CELL_SIZE,
-                    (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE
-                );
-                gradient.addColorStop(0, '#4ade80');
-                gradient.addColorStop(1, '#22c55e');
+                const gradient = ctx.createLinearGradient(x * CELL_SIZE, y * CELL_SIZE, (x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE);
+                gradient.addColorStop(0, '#4ade80'); gradient.addColorStop(1, '#22c55e');
                 ctx.fillStyle = gradient;
-                
                 ctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-                
                 if (index === 0) {
                     ctx.fillStyle = '#fff';
                     ctx.fillRect(x * CELL_SIZE + 4, y * CELL_SIZE + 4, 3, 3);
@@ -797,27 +730,15 @@
 
         function changeDirection(newDirection) {
             if (gameStatus !== 'playing') return;
-            
-            const opposites = {
-                'UP': 'DOWN',
-                'DOWN': 'UP',
-                'LEFT': 'RIGHT',
-                'RIGHT': 'LEFT'
-            };
-            
-            if (opposites[newDirection] !== direction) {
-                nextDirection = newDirection;
-            }
+            const opposites = { 'UP': 'DOWN', 'DOWN': 'UP', 'LEFT': 'RIGHT', 'RIGHT': 'LEFT' };
+            if (opposites[newDirection] !== direction) { nextDirection = newDirection; }
         }
 
         function gameOver() {
             gameStatus = 'gameover';
             clearInterval(gameLoop);
             updateEmoji('😂');
-
-            gameOverSound.currentTime = 0; // Reset sound
-            // gameOverSound.play(); // This line will cause an error if the file is missing
-            
+            // gameOverSound.play();
             if (leaderboard.length < 10 || score > leaderboard[leaderboard.length - 1].score) {
                 document.getElementById('finalScore').textContent = score;
                 document.getElementById('nameModal').classList.remove('hidden');
@@ -835,7 +756,6 @@
             setTimeout(() => emojiEl.style.animation = 'bounce 0.5s ease', 10);
         }
 
-        // --- Event Listeners (Unchanged) ---
         document.addEventListener('keydown', (e) => {
             const key = e.key;
             if (key === 'ArrowUp') changeDirection('UP');
@@ -845,30 +765,17 @@
             else if (key === ' ' && gameStatus !== 'playing') startGame();
         });
 
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        });
-
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-        });
-
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); });
         canvas.addEventListener('touchend', (e) => {
             e.preventDefault();
             if (gameStatus !== 'playing') return;
-            
             const touchEndX = e.changedTouches[0].clientX;
             const touchEndY = e.changedTouches[0].clientY;
             const deltaX = touchEndX - touchStartX;
             const deltaY = touchEndY - touchStartY;
-            
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                changeDirection(deltaX > 0 ? 'RIGHT' : 'LEFT');
-            } else {
-                changeDirection(deltaY > 0 ? 'DOWN' : 'UP');
-            }
+            if (Math.abs(deltaX) > Math.abs(deltaY)) { changeDirection(deltaX > 0 ? 'RIGHT' : 'LEFT'); } 
+            else { changeDirection(deltaY > 0 ? 'DOWN' : 'UP'); }
         });
 
         // --- Initialization ---
