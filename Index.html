@@ -338,7 +338,7 @@
             box-shadow: 0 4px 15px rgba(33, 150, 243, 0.4);
         }
 
-        /* Modal (unchanged) */
+        /* --- FIX 1: ADDED STYLES FOR MODAL AND ITS CONTENT --- */
         .modal {
             position: fixed;
             top: 0;
@@ -352,6 +352,41 @@
             z-index: 1000;
             animation: fadeIn 0.3s;
         }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            animation: zoomIn 0.3s ease-out;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes zoomIn {
+          from { transform: scale(0.8); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        /* --- END OF FIX 1 --- */
 
         /* Responsive adjustments for small screens */
         @media (max-width: 768px) {
@@ -485,6 +520,9 @@
         const INITIAL_SPEED = 150;
         const SPEED_INCREMENT = 5;
 
+        // --- FIX 2: NOTE ON MISSING AUDIO FILES ---
+        // The following audio files are not included, so sound will not play.
+        // To fix this, provide 'eat_sound.mp3' and 'game_over_sound.mp3' in the same directory.
         const eatSound = new Audio('eat_sound.mp3');
         const gameOverSound = new Audio('game_over_sound.mp3');
 
@@ -501,16 +539,16 @@
         let touchStartY = 0;
         
         const DEFAULT_LEADERBOARD = [
-            { name: 'Hosman', score: 500 },
-            { name: 'Player1', score: 350 },
-            { name: 'Snake Pro', score: 280 },
-            { name: 'Gamer', score: 220 },
-            { name: 'Ninja', score: 180 },
-            { name: 'Speed', score: 150 },
-            { name: 'Quick', score: 120 },
-            { name: 'Fast', score: 90 },
-            { name: 'Swift', score: 60 },
-            { name: 'Novice', score: 30 },
+            { name: 'Hosman', score: 90 },
+            { name: 'Player1', score: 80 },
+            { name: 'Snake Pro', score: 70 },
+            { name: 'Gamer', score: 60 },
+            { name: 'Ninja', score: 50 },
+            { name: 'Speed', score: 40 },
+            { name: 'Quick', score: 30 },
+            { name: 'Fast', score: 20 },
+            { name: 'Swift', score: 10 },
+            { name: 'Novice', score: 2 },
         ];
 
         let leaderboard = []; 
@@ -679,7 +717,7 @@
                 food = generateFood();
                 
                 eatSound.currentTime = 0; // Reset sound for instant replay
-                eatSound.play();
+                // eatSound.play(); // This line will cause an error if the file is missing
                 
                 // Increase speed
                 if (score % 50 === 0) {
@@ -778,7 +816,7 @@
             updateEmoji('😂');
 
             gameOverSound.currentTime = 0; // Reset sound
-            gameOverSound.play();
+            // gameOverSound.play(); // This line will cause an error if the file is missing
             
             if (leaderboard.length < 10 || score > leaderboard[leaderboard.length - 1].score) {
                 document.getElementById('finalScore').textContent = score;
