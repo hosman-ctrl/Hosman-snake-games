@@ -20,7 +20,6 @@
             justify-content: center;
             align-items: center;
             padding: 10px;
-            /* --- OPTIMIZATION 1: Removed 'overflow: hidden' to allow scrolling on mobile --- */
         }
 
         .container {
@@ -113,7 +112,6 @@
             flex-grow: 1;
             padding: 20px;
             gap: 20px;
-            /* --- OPTIMIZATION 2: Added min-height for better flex behavior --- */
             min-height: 0;
         }
 
@@ -263,7 +261,6 @@
             flex-grow: 1;
             position: relative;
             overflow: hidden;
-            /* --- OPTIMIZATION 3: Make wrapper a flex container for scrolling child --- */
             display: flex;
             flex-direction: column;
         }
@@ -275,24 +272,21 @@
             align-items: center;
             gap: 10px;
             transition: opacity 0.3s;
-            /* --- OPTIMIZATION 4: Prevent title from shrinking --- */
             flex-shrink: 0;
         }
 
         .leaderboard-content {
             transition: opacity 0.3s, transform 0.3s;
-            /* --- OPTIMIZATION 5: Make content area flexible for scrolling --- */
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            min-height: 0; /* Important flexbox fix for scrolling children */
+            min-height: 0;
         }
 
-        /* --- OPTIMIZATION 6: Added a new rule to make the list scrollable --- */
         #leaderboard {
-            overflow-y: auto; /* Enable vertical scrolling */
-            flex-grow: 1; /* Allow the list to take up available space */
-            padding-right: 5px; /* Space for the scrollbar */
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 5px;
         }
 
         .leaderboard-column.retracted .leaderboard-content {
@@ -335,6 +329,12 @@
             border-radius: 10px;
             transition: all 0.3s;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .leaderboard-item.current-user {
+            background: linear-gradient(135deg, #ffd93d 0%, #ff9f43 100%);
+            border: 2px solid #ff9f43;
+            transform: scale(1.02);
         }
 
         .btn-primary {
@@ -387,6 +387,36 @@
             display: none;
         }
 
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+
+        .player-stats {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .player-stats h3 {
+            margin-bottom: 10px;
+            color: #1a237e;
+            font-size: 16px;
+        }
+
+        .player-stats p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .percentage {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
@@ -401,7 +431,6 @@
         @media (max-width: 768px) {
             .container {
                 max-width: 100%;
-                /* --- OPTIMIZATION 7: Use min-height to allow container to grow --- */
                 min-height: 100vh;
                 height: auto;
                 border-radius: 0;
@@ -412,15 +441,15 @@
             }
             .leaderboard-column {
                 width: 100%;
-                order: 3; /* Move to bottom */
+                order: 3;
             }
             .leaderboard-column.retracted {
                 width: 100%;
                 height: 60px;
-                flex-shrink: 0; /* Prevent it from collapsing */
+                flex-shrink: 0;
             }
             .leaderboard-wrapper {
-                padding-top: 50px; /* Space for the toggle button */
+                padding-top: 50px;
             }
             .toggle-btn {
                 left: 10px;
@@ -448,7 +477,7 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect fill='%231a237e' width='200' height='200'/%3E%3Ctext x='100' y='100' font-family='Arial' font-size='60' fill='white' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8E%AE%3C/text%3E%3C/svg%3E" alt="Hosman Gaming" class="header-image">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect fill='%231a237e' width='200' height='200'/%3E%3Ctext x='100' y='100' font-family='Arial' font-size='60' fill='white' text-anchor='middle' dominant-baseline='middle'%3E%F0%9F%8E%AE%3C/text%3E%3C/svg%3E" alt="Hosman Gaming" class="header-image">
                 <div class="header-titles">
                     <h1>HOSMAN GAMING</h1>
                     <div class="game-title">Snakes the Hosman Way</div>
@@ -494,9 +523,17 @@
                     </button>
                     <div class="leaderboard-content">
                         <h2>
-                            <span>🏆</span> Top 10 Leaderboard
+                            <span>🏆</span> Global Leaderboard
                         </h2>
-                        <div id="leaderboard"></div>
+                        <div id="leaderboard">
+                            <div class="loading">Loading leaderboard...</div>
+                        </div>
+                        <div id="playerStats" class="player-stats">
+                            <h3>Your Stats</h3>
+                            <p>Your best score: <span id="playerBestScore">0</span></p>
+                            <p>Your global rank: <span id="playerGlobalRank">-</span></p>
+                            <p>You are in the top <span id="playerPercentage" class="percentage">-</span> of players</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -543,15 +580,12 @@
         let touchStartX = 0;
         let touchStartY = 0;
         
-        const DEFAULT_LEADERBOARD = [
-            { name: 'Hosman', score: 500 }, { name: 'Player1', score: 50 },
-            { name: 'Snake Pro', score: 40 }, { name: 'Gamer', score: 35 },
-            { name: 'Ninja', score: 30 }, { name: 'Speed', score: 25 },
-            { name: 'Quick', score: 20 }, { name: 'Fast', score: 15 },
-            { name: 'Swift', score: 10 }, { name: 'Novice', score: 0 },
-        ];
-
-        let leaderboard = []; 
+        // Global leaderboard state
+        let globalLeaderboard = [];
+        let playerBestScore = 0;
+        let playerGlobalRank = null;
+        let playerPercentage = null;
+        let playerName = '';
 
         // --- Leaderboard Functions ---
         function toggleLeaderboard() {
@@ -561,38 +595,157 @@
             toggleBtn.innerHTML = isRetracted ? '&gt;' : '&lt;';
         }
 
-        function loadLeaderboard() {
-            const storedLeaderboard = localStorage.getItem('snakeLeaderboard');
-            if (storedLeaderboard) {
-                try {
-                    leaderboard = JSON.parse(storedLeaderboard);
-                } catch (e) {
-                    console.error("Could not parse leaderboard from localStorage:", e);
-                    leaderboard = DEFAULT_LEADERBOARD;
+        // Simulated backend API functions
+        async function fetchGlobalLeaderboard() {
+            // In a real implementation, this would fetch from your server
+            // For demo purposes, we'll simulate with localStorage
+            try {
+                const response = localStorage.getItem('globalSnakeLeaderboard');
+                if (response) {
+                    return JSON.parse(response);
+                } else {
+                    // Return some initial data if none exists
+                    return [
+                        { name: 'Hosman', score: 500, id: '1' },
+                        { name: 'SnakeMaster', score: 450, id: '2' },
+                        { name: 'Player1', score: 400, id: '3' },
+                        { name: 'Snake Pro', score: 350, id: '4' },
+                        { name: 'Gamer', score: 300, id: '5' },
+                        { name: 'Ninja', score: 250, id: '6' },
+                        { name: 'Speed', score: 200, id: '7' },
+                        { name: 'Quick', score: 150, id: '8' },
+                        { name: 'Fast', score: 100, id: '9' },
+                        { name: 'Swift', score: 50, id: '10' }
+                    ];
                 }
-            } else {
-                leaderboard = DEFAULT_LEADERBOARD;
+            } catch (error) {
+                console.error("Error fetching leaderboard:", error);
+                return [];
             }
         }
-        
-        function updateLeaderboard() {
-            const lb = document.getElementById('leaderboard');
-            lb.innerHTML = leaderboard.map((entry, index) => `
-                <div class="leaderboard-item">
-                    <span class="rank">#${index + 1}</span>
-                    <span class="name">${entry.name}</span>
-                    <span class="score-value">${entry.score}</span>
-                </div>
-            `).join('');
+
+        async function submitScoreToLeaderboard(name, score) {
+            // In a real implementation, this would POST to your server
+            // For demo purposes, we'll simulate with localStorage
+            try {
+                const leaderboard = await fetchGlobalLeaderboard();
+                const playerId = localStorage.getItem('playerId') || generatePlayerId();
+                localStorage.setItem('playerId', playerId);
+                
+                // Add or update player score
+                const existingPlayerIndex = leaderboard.findIndex(entry => entry.id === playerId);
+                
+                if (existingPlayerIndex !== -1) {
+                    // Update existing player if score is higher
+                    if (score > leaderboard[existingPlayerIndex].score) {
+                        leaderboard[existingPlayerIndex].score = score;
+                        leaderboard[existingPlayerIndex].name = name;
+                    }
+                } else {
+                    // Add new player
+                    leaderboard.push({ name, score, id: playerId });
+                }
+                
+                // Sort by score descending
+                leaderboard.sort((a, b) => b.score - a.score);
+                
+                // Keep only top 100 players for performance
+                const trimmedLeaderboard = leaderboard.slice(0, 100);
+                
+                // Save back to localStorage
+                localStorage.setItem('globalSnakeLeaderboard', JSON.stringify(trimmedLeaderboard));
+                
+                return trimmedLeaderboard;
+            } catch (error) {
+                console.error("Error submitting score:", error);
+                return [];
+            }
         }
 
-        function submitScore() {
+        function generatePlayerId() {
+            return 'player_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
+
+        async function loadLeaderboard() {
+            globalLeaderboard = await fetchGlobalLeaderboard();
+            updateLeaderboardDisplay();
+            
+            // Update player stats
+            updatePlayerStats();
+        }
+        
+        function updateLeaderboardDisplay() {
+            const lb = document.getElementById('leaderboard');
+            const playerId = localStorage.getItem('playerId');
+            
+            if (globalLeaderboard.length === 0) {
+                lb.innerHTML = '<div class="loading">No scores yet. Be the first!</div>';
+                return;
+            }
+            
+            lb.innerHTML = globalLeaderboard.slice(0, 10).map((entry, index) => {
+                const isCurrentUser = entry.id === playerId;
+                return `
+                    <div class="leaderboard-item ${isCurrentUser ? 'current-user' : ''}">
+                        <span class="rank">#${index + 1}</span>
+                        <span class="name">${entry.name}</span>
+                        <span class="score-value">${entry.score}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updatePlayerStats() {
+            const playerId = localStorage.getItem('playerId');
+            if (!playerId) return;
+            
+            // Find player's best score and rank
+            const playerEntry = globalLeaderboard.find(entry => entry.id === playerId);
+            
+            if (playerEntry) {
+                playerBestScore = playerEntry.score;
+                playerGlobalRank = globalLeaderboard.findIndex(entry => entry.id === playerId) + 1;
+                playerPercentage = calculatePercentage(playerGlobalRank, globalLeaderboard.length);
+            } else {
+                // Player not in top 100, estimate their rank
+                const storedScore = localStorage.getItem('playerBestScore');
+                playerBestScore = storedScore ? parseInt(storedScore) : 0;
+                
+                if (playerBestScore > 0) {
+                    // Estimate rank based on score (this is a simplified estimation)
+                    const estimatedRank = globalLeaderboard.filter(entry => entry.score > playerBestScore).length + 1;
+                    playerGlobalRank = estimatedRank;
+                    playerPercentage = calculatePercentage(estimatedRank, globalLeaderboard.length + 1);
+                } else {
+                    playerGlobalRank = '-';
+                    playerPercentage = '-';
+                }
+            }
+            
+            // Update UI
+            document.getElementById('playerBestScore').textContent = playerBestScore;
+            document.getElementById('playerGlobalRank').textContent = playerGlobalRank;
+            document.getElementById('playerPercentage').textContent = playerPercentage;
+        }
+
+        function calculatePercentage(rank, totalPlayers) {
+            if (rank === '-' || totalPlayers === 0) return '-';
+            const percentage = ((totalPlayers - rank) / totalPlayers * 100).toFixed(1);
+            return `${percentage}%`;
+        }
+
+        async function submitScore() {
             const name = document.getElementById('playerName').value.trim() || 'Anonymous';
-            leaderboard.push({ name, score });
-            leaderboard.sort((a, b) => b.score - a.score);
-            leaderboard = leaderboard.slice(0, 10);
-            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
-            updateLeaderboard();
+            playerName = name;
+            
+            // Submit score to global leaderboard
+            globalLeaderboard = await submitScoreToLeaderboard(name, score);
+            
+            // Update UI
+            updateLeaderboardDisplay();
+            updatePlayerStats();
+            
+            // Close modal
             document.getElementById('nameModal').classList.add('hidden');
             document.getElementById('playerName').value = '';
             updateEmoji('😢');
@@ -739,9 +892,23 @@
             clearInterval(gameLoop);
             updateEmoji('😂');
             // gameOverSound.play();
-            if (leaderboard.length < 10 || score > leaderboard[leaderboard.length - 1].score) {
+            
+            // Store player's best score locally
+            const storedBestScore = localStorage.getItem('playerBestScore');
+            if (!storedBestScore || score > parseInt(storedBestScore)) {
+                localStorage.setItem('playerBestScore', score.toString());
+            }
+            
+            // Check if score qualifies for global leaderboard
+            const qualifiesForLeaderboard = globalLeaderboard.length < 10 || 
+                score > globalLeaderboard[globalLeaderboard.length - 1].score;
+            
+            if (qualifiesForLeaderboard) {
                 document.getElementById('finalScore').textContent = score;
                 document.getElementById('nameModal').classList.remove('hidden');
+            } else {
+                // Still update stats even if not on leaderboard
+                updatePlayerStats();
             }
         }
 
@@ -780,7 +947,6 @@
 
         // --- Initialization ---
         loadLeaderboard();
-        updateLeaderboard();
         draw();
     </script>
 </body>
